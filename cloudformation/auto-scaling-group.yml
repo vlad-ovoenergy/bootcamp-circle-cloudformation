@@ -111,8 +111,12 @@ Resources:
         Fn::Base64:
           !Sub |
             #!/usr/bin/env bash
+            
+            yum install -y java-1.8.0-openjdk-devel
+            yum remove -y java-1.7.0-openjdk
+
             # TODO use correct bucket name
-            aws s3 cp s3://delete-me-bootcamp-artifacts/${S3Prefix}/bootcamp-circle-cloudformation-0.1.0-SNAPSHOT.tgz .
+            aws s3 cp s3://delete-me-bootcamp-test/${S3Prefix}/bootcamp-circle-cloudformation-0.1.0-SNAPSHOT.tgz .
 
             tar -xvf bootcamp-circle-cloudformation-0.1.0-SNAPSHOT.tgz
             cd bootcamp-circle-cloudformation-0.1.0-SNAPSHOT
