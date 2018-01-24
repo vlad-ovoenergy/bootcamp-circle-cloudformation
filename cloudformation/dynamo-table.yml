@@ -1,0 +1,33 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: DynamoDB table for the ToDo app
+
+Resources:
+
+  ToDoItemsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions: 
+        - AttributeName: "hash"
+          AttributeType: "S"
+
+        - AttributeName: "epochMillis"
+          AttributeType: "N"
+
+      KeySchema: 
+        - AttributeName: "hash"
+          KeyType: "HASH"
+
+        - AttributeName: "epochMillis"
+          KeyType: "RANGE"
+
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+      Tags:
+        - Key: Environment
+          Value: Bootcamp
+
+        - Key: App
+          Value: ToDo
