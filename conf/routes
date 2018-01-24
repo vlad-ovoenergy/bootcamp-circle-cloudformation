@@ -1,3 +1,5 @@
 GET     /                                               controllers.TodoController.list
 POST    /                                               controllers.TodoController.create
 POST    /remove/:epochMillis                            controllers.TodoController.remove(epochMillis: Long)
+
+GET     /health                                         controllers.TodoController.healthcheck

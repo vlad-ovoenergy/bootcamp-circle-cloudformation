@@ -9,6 +9,8 @@ class TodoController(controllerComponents: ControllerComponents,
                      dynamoClient: AmazonDynamoDB,
                      dynamoOps: DynamoOps) extends AbstractController(controllerComponents) {
 
+  val healthcheck = Action { Ok("I'm fine thanks") }
+
   val list = Action {
     Scanamo.exec(dynamoClient)(dynamoOps.listItems) match {
       case Left(errorMsg) => Ok(errorMsg)

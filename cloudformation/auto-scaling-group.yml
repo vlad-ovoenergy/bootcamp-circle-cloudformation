@@ -1,0 +1,139 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: Auto Scaling Group for the ToDo app
+
+Parameters:
+  DynamoTableName:
+    Type: String
+  VPC:
+    Type: AWS::EC2::VPC::Id
+  Subnets:
+    Description: Subnets where the EC2 instances will run. These should be PRIVATE subnets.
+    Type: List<AWS::EC2::Subnet::Id>
+  S3Prefix:
+    Description: 'The folder inside the S3 bucket where your artifact can be found, e.g. "chris"'
+    Type: String
+
+Resources:
+
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - 
+            Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        -
+          PolicyName: download-artifact
+          PolicyDocument:
+            Statement:
+            - Effect: Allow
+              Action:
+                - 's3:List*'
+                - 's3:Get*'
+              Resource: 
+                # TODO use correct bucket name
+                - "arn:aws:s3:::delete-me-bootcamp-test"
+                - "arn:aws:s3:::delete-me-bootcamp-test/*"
+        -
+          PolicyName: read-write-dynamo
+          PolicyDocument:
+            Statement:
+            - Effect: Allow
+              Action:
+                - 'dynamodb:Put*'
+                - 'dynamodb:Update*'
+                - 'dynamodb:Query'
+                - 'dynamodb:Scan'
+                - 'dynamodb:Get*'
+                - 'dynamodb:List*'
+                - 'dynamodb:BatchGetItem'
+                - 'dynamodb:DescribeTable'
+              Resource: 
+                - !Sub "arn:aws:dynamodb:*:${AWS::AccountId}:table/${DynamoTableName}*"
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+        - Ref: Role
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'Open port 9000 to load balancer'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 9000
+          ToPort: 9000
+          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+      Tags:
+        - Key: Environment
+          Value: Bootcamp
+        - Key: App
+          Value: ToDo
+      VpcId: !Ref VPC
+
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'Open port 80 to the world'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Environment
+          Value: Bootcamp
+        - Key: App
+          Value: ToDo
+      VpcId: !Ref VPC
+
+  LaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId: ami-1a962263 # Amazon Linux HVM (SSD) EBS-Backed 64-bit eu-west-1
+      InstanceType: t2.micro
+      IamInstanceProfile: !Ref InstanceProfile
+      SecurityGroups:
+        - Ref: InstanceSecurityGroup
+      AssociatePublicIpAddress: false
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/usr/bin/env bash
+            # TODO use correct bucket name
+            aws s3 cp s3://delete-me-bootcamp-artifacts/${S3Prefix}/bootcamp-circle-cloudformation-0.1.0-SNAPSHOT.tgz .
+
+            tar -xvf bootcamp-circle-cloudformation-0.1.0-SNAPSHOT.tgz
+            cd bootcamp-circle-cloudformation-0.1.0-SNAPSHOT
+
+            # Note: we are running our app as root because I am lazy. 
+            # This is a Bad Thing. Don't do this in production.
+            bin/bootcamp-circle-cloudformation &
+
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier: !Ref Subnets
+      AvailabilityZones: !GetAZs ''
+      LaunchConfigurationName: !Ref LaunchConfiguration
+      MinSize: 1
+      MaxSize: 2
+      DesiredCapacity: 1
+      Tags:
+      - Key: Environment
+        Value: Bootcamp
+        PropagateAtLaunch: true
+      - Key: App
+        Value: ToDo
+        PropagateAtLaunch: true
