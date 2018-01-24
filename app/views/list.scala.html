@@ -1,0 +1,24 @@
+@(items: List[TodoItem])
+
+<!DOCTYPE html>
+<html>
+    <body>
+        <h2>Your ToDo list</h2>
+        <div>
+            <ul>
+                @for(item <- items) {
+                    <li>@item.text <form method="post" action="@controllers.routes.TodoController.remove(item.epochMillis)"><button type="submit">Delete</button></form></li>
+                }
+            </ul>
+            @if(items.isEmpty) {
+                You don't have any ToDo items!
+            }
+        </div>
+        <div>
+            <form method="post" action="@controllers.routes.TodoController.create">
+                <input type="text" minlength="1" name="text">
+                <button type="submit">Create</button>
+            </form>
+        </div>
+    </body>
+</html>

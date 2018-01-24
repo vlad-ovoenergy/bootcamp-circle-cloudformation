@@ -1,3 +1,3 @@
 package models
 
-case class TodoItem(epochMillis: Long, text: String)
+case class TodoItem(hash: String, epochMillis: Long, text: String)

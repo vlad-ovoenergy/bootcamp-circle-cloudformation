@@ -10,6 +10,8 @@ import scala.language.postfixOps
 
 class DynamoOps(table: Table[TodoItem]) {
 
+  private val HashValue = "ToDo"
+
   /**
     * Retrieve all ToDo items, sorted by creation time (newest first)
     */
@@ -18,7 +20,7 @@ class DynamoOps(table: Table[TodoItem]) {
       Free.pure(Left("Oops, you don't have a DynamoDB table yet :("))
     else {
       for {
-        items <- table.query('hash -> "TODO" descending)
+        items <- table.query('hash -> HashValue descending)
       } yield Right(items.flatMap(_.toOption))
     }
   }
@@ -28,7 +30,7 @@ class DynamoOps(table: Table[TodoItem]) {
     */
   def createItem(text: String): ScanamoOps[TodoItem] =
     for {
-      item <- Free.pure[ScanamoOpsA, TodoItem](TodoItem(System.currentTimeMillis(), text))
+      item <- Free.pure[ScanamoOpsA, TodoItem](TodoItem(HashValue, System.currentTimeMillis(), text))
       _ <- table.put(item)
     } yield item
 
@@ -38,7 +40,7 @@ class DynamoOps(table: Table[TodoItem]) {
     */
   def deleteItem(epochMillis: Long): ScanamoOps[Unit] =
     for {
-      _ <- table.delete('hash -> "TODO" and ('epochMillis -> epochMillis))
+      _ <- table.delete('hash -> HashValue and ('epochMillis -> epochMillis))
     } yield ()
 
 }
