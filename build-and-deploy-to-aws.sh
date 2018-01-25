@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 <<COMMENT
 Deploys the app to a specified Auto Scaling Group. Procedure:
 
@@ -34,7 +34,7 @@ describe_asg_output=$(aws --region eu-west-1 autoscaling describe-auto-scaling-g
     --auto-scaling-group-names "$asg_name" \
     --query 'AutoScalingGroups[0].Instances[].InstanceId' --output text)
 
-if [ "$describe_asg_output" -eq "None" ]; then
+if [ "$describe_asg_output" == "None" ]; then
   echo "Could not find any instances. Is the ASG name correct?"
   exit 1
 fi
