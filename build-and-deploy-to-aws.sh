@@ -13,6 +13,8 @@ Arguments:
 - $2 = S3 prefix (required)
 COMMENT
 
+set -x
+
 asg_name=${1?'Auto scaling group name missing'}
 s3_prefix=${2?'S3 prefix missing'}
 
@@ -32,7 +34,7 @@ describe_asg_output=$(aws --region eu-west-1 autoscaling describe-auto-scaling-g
     --auto-scaling-group-names "$asg_name" \
     --query 'AutoScalingGroups[0].Instances[].InstanceId' --output text)
 
-if [ "$describe_asg_output" == "None" ]; then
+if [ "$describe_asg_output" -eq "None" ]; then
   echo "Could not find any instances. Is the ASG name correct?"
   exit 1
 fi
