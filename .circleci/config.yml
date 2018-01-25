@@ -6,4 +6,24 @@ jobs:
     working_directory: ~/bootcamp-circle-cloudformation
     steps:
       - checkout
-      - run: sbt test universal:packageBin
+      - run: sbt test
+  deploy:
+    docker:
+      - image: adambene/circleci-openjdk-awscli
+    working_directory: ~/bootcamp-circle-cloudformation
+    steps:
+      - checkout
+      - run: ./build-and-deploy-to-aws.sh delete-me-bootcamp-asg-AutoScalingGroup-869K43OHH4RR chris 
+
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - test
+          filters:
+            branches: 
+              only: master
+        
