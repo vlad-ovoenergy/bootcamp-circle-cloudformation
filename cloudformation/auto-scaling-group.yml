@@ -10,6 +10,9 @@ Parameters:
   Subnets:
     Description: Subnets where the EC2 instances will run. These should be PRIVATE subnets.
     Type: List<AWS::EC2::Subnet::Id>
+  LoadBalancerSubnets:
+    Description: Subnets where the load balancer will run. These should be PUBLIC subnets.
+    Type: List<AWS::EC2::Subnet::Id>
   S3Prefix:
     Description: 'The folder inside the S3 bucket where your artifact can be found, e.g. "chris"'
     Type: String
@@ -54,6 +57,7 @@ Resources:
                 - 'dynamodb:Scan'
                 - 'dynamodb:Get*'
                 - 'dynamodb:List*'
+                - 'dynamodb:Delete*'
                 - 'dynamodb:BatchGetItem'
                 - 'dynamodb:DescribeTable'
               Resource: 
@@ -128,6 +132,10 @@ Resources:
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
+      LoadBalancerNames:
+        - !Ref LoadBalancer
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 180
       VPCZoneIdentifier: !Ref Subnets
       AvailabilityZones: !GetAZs ''
       LaunchConfigurationName: !Ref LaunchConfiguration
@@ -141,3 +149,38 @@ Resources:
       - Key: App
         Value: ToDo
         PropagateAtLaunch: true
+
+  # TODO comment this out
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      Scheme: internet-facing
+      SecurityGroups:
+      - !Ref LoadBalancerSecurityGroup
+      Subnets: !Ref LoadBalancerSubnets
+      CrossZone: true
+      Listeners:
+      - LoadBalancerPort: 80
+        InstancePort: 9000
+        Protocol: HTTP
+      HealthCheck:
+        Target: HTTP:9000/health
+        Timeout: '5'
+        Interval: '10'
+        UnhealthyThreshold: '2'
+        HealthyThreshold: '2'
+      Tags:
+      - Key: Environment
+        Value: Bootcamp
+      - Key: App
+        Value: ToDo
+
+  DnsRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: 'todo.id-uat.ovotech.org.uk.' # TODO update domain
+      HostedZoneId: 'Z1GQPB3VL1ULS6' # TODO replace with HostedZoneName: 'bootcamp.ovotech.org.uk.'
+      Type: A
+      AliasTarget:
+        HostedZoneId: !GetAtt LoadBalancer.CanonicalHostedZoneNameID
+        DNSName: !GetAtt LoadBalancer.DNSName
