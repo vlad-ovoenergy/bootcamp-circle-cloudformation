@@ -55,7 +55,7 @@ while true; do
     --auto-scaling-group-names "$asg_name" \
     --query 'AutoScalingGroups[0].Instances[?HealthStatus==`Healthy` && LifecycleState==`InService`].InstanceId' \
     --output text)
-  if [ "$healthy_instances_output" -eq "None" ]; then
+  if [ "$healthy_instances_output" == "None" ]; then
     healthy_instances=()
   else
     healthy_instances=($healthy_instances_output)
