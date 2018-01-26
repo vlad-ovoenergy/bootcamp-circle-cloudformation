@@ -13,8 +13,6 @@ Arguments:
 - $2 = S3 prefix (required)
 COMMENT
 
-set -x
-
 asg_name=${1?'Auto scaling group name missing'}
 s3_prefix=${2?'S3 prefix missing'}
 
@@ -52,6 +50,31 @@ aws --region eu-west-1 autoscaling set-desired-capacity \
     --auto-scaling-group-name "$asg_name" \
     --desired-capacity "$new_desired_cap"
 
-# TODO wait until all instances are healthy and InService
+while true; do
+  healthy_instances_output=$(aws --region eu-west-1 autoscaling describe-auto-scaling-groups \
+    --auto-scaling-group-names "$asg_name" \
+    --query 'AutoScalingGroups[0].Instances[?HealthStatus==`Healthy` && LifecycleState==`InService`].InstanceId' \
+    --output text)
+  if [ "$healthy_instances_output" -eq "None" ]; then
+    healthy_instances=()
+  else
+    healthy_instances=($healthy_instances_output)
+  fi
 
-# TODO terminate old instances
+  if [ ${#healthy_instances[@]} -lt $new_desired_cap ]; then
+    echo "Expected $new_desired_cap heathy in-service instances but we only have ${#healthy_instances[@]}. Waiting 30 seconds..."
+    sleep 30
+  else
+    echo "Success! We now have $new_desired_cap healthy instances in service."
+    break
+  fi
+done
+
+for old_instance in "${old_instances[@]}"; do
+  echo "Terminating old instance $old_instance"
+  aws --region eu-west-1 autoscaling terminate-instance-in-auto-scaling-group \
+      --instance-id "$old_instance" \
+      --should-decrement-desired-capacity
+done
+
+echo "Finished."
