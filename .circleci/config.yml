@@ -1,29 +1,9 @@
 version: 2
 jobs:
-  test:
+  build:
     docker:
       - image: adambene/circleci-openjdk-awscli
     working_directory: ~/bootcamp-circle-cloudformation
     steps:
       - checkout
       - run: sbt test
-  deploy:
-    docker:
-      - image: adambene/circleci-openjdk-awscli
-    working_directory: ~/bootcamp-circle-cloudformation
-    steps:
-      - checkout
-      - run: ./build-and-deploy-to-aws.sh delete-me-chris-asg-AutoScalingGroup-15JGK1GPHQD6D chris 
-
-workflows:
-  version: 2
-  build-deploy:
-    jobs:
-      - test
-      - deploy:
-          requires:
-            - test
-          filters:
-            branches: 
-              only: master
-        

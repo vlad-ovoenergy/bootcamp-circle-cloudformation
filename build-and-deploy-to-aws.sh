@@ -2,7 +2,7 @@
 <<COMMENT
 Deploys the app to a specified Auto Scaling Group. Procedure:
 
-1. Builds the tarball using sbt
+1. Builds the artifact using sbt
 2. Uploads it to s3://bucket/${prefix}/
 3. Doubles the size of the ASG
 4. Waits until all instances are healthy
@@ -11,6 +11,12 @@ Deploys the app to a specified Auto Scaling Group. Procedure:
 Arguments:
 - $1 = ASG name (required)
 - $2 = S3 prefix (required)
+
+The S3 prefix should match the parameter you pass to CloudFormation when creating the Auto Scaling Group.
+
+Example:
+./build-and-deploy-to-aws.sh todo-app-chris-asg-AutoScalingGroup-15JGK1GPHQD6D chris
+
 COMMENT
 
 asg_name=${1?'Auto scaling group name missing'}

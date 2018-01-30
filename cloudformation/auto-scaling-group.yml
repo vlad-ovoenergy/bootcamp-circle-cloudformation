@@ -122,11 +122,12 @@ Resources:
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      # TODO comment out the first three props
-      LoadBalancerNames:
-        - !Ref LoadBalancer
-      HealthCheckType: ELB
-      HealthCheckGracePeriod: 180
+      # TODO uncomment these properties when you create the load balancer
+      #LoadBalancerNames:
+      #  - !Ref LoadBalancer
+      #HealthCheckType: ELB
+      #HealthCheckGracePeriod: 180
+      
       VPCZoneIdentifier: [ subnet-50876036 ]
       AvailabilityZones: [ eu-west-1a ]
       LaunchConfigurationName: !Ref LaunchConfiguration
@@ -140,38 +141,42 @@ Resources:
       - Key: App
         Value: ToDo
         PropagateAtLaunch: true
+      - Key: Name
+        Value: !Sub "ToDo app ($S3Prefix)"
+        PropagateAtLaunch: true
 
-  # TODO comment this out
-  LoadBalancer:
-    Type: AWS::ElasticLoadBalancing::LoadBalancer
-    Properties:
-      Scheme: internet-facing
-      SecurityGroups:
-      - !Ref LoadBalancerSecurityGroup
-      Subnets: [ subnet-be8166d8 ]
-      CrossZone: false
-      Listeners:
-      - LoadBalancerPort: 80
-        InstancePort: 9000
-        Protocol: HTTP
-      HealthCheck:
-        Target: HTTP:9000/health
-        Timeout: '5'
-        Interval: '10'
-        UnhealthyThreshold: '2'
-        HealthyThreshold: '2'
-      Tags:
-      - Key: Environment
-        Value: Bootcamp
-      - Key: App
-        Value: ToDo
+  # TODO uncomment this to create the load balancer
+  #LoadBalancer:
+    #Type: AWS::ElasticLoadBalancing::LoadBalancer
+    #Properties:
+      #Scheme: internet-facing
+      #SecurityGroups:
+      #- !Ref LoadBalancerSecurityGroup
+      #Subnets: [ subnet-be8166d8 ]
+      #CrossZone: false
+      #Listeners:
+      #- LoadBalancerPort: 80
+        #InstancePort: 9000
+        #Protocol: HTTP
+      #HealthCheck:
+        #Target: HTTP:9000/health
+        #Timeout: '5'
+        #Interval: '10'
+        #UnhealthyThreshold: '2'
+        #HealthyThreshold: '2'
+      #Tags:
+      #- Key: Environment
+        #Value: Bootcamp
+      #- Key: App
+        #Value: ToDo
 
-  DnsRecord:
-    Type: AWS::Route53::RecordSet
-    Properties:
-      Name: 'todo.bootcamp.ovotech.org.uk.'
-      HostedZoneName: 'bootcamp.ovotech.org.uk.'
-      Type: A
-      AliasTarget:
-        HostedZoneId: !GetAtt LoadBalancer.CanonicalHostedZoneNameID
-        DNSName: !GetAtt LoadBalancer.DNSName
+  # TODO uncomment this when you create the load balancer
+  #DnsRecord:
+    #Type: AWS::Route53::RecordSet
+    #Properties:
+      #Name: 'todo.bootcamp.ovotech.org.uk.'
+      #HostedZoneName: 'bootcamp.ovotech.org.uk.'
+      #Type: A
+      #AliasTarget:
+        #HostedZoneId: !GetAtt LoadBalancer.CanonicalHostedZoneNameID
+        #DNSName: !GetAtt LoadBalancer.DNSName
