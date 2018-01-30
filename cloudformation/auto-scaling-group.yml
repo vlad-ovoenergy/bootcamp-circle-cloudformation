@@ -5,14 +5,6 @@ Description: Auto Scaling Group for the ToDo app
 Parameters:
   DynamoTableName:
     Type: String
-  VPC:
-    Type: AWS::EC2::VPC::Id
-  Subnets:
-    Description: Subnets where the EC2 instances will run. These should be PRIVATE subnets.
-    Type: List<AWS::EC2::Subnet::Id>
-  LoadBalancerSubnets:
-    Description: Subnets where the load balancer will run. These should be PUBLIC subnets.
-    Type: List<AWS::EC2::Subnet::Id>
   S3Prefix:
     Description: 'The folder inside the S3 bucket where your artifact can be found, e.g. "chris"'
     Type: String
@@ -42,9 +34,8 @@ Resources:
                 - 's3:List*'
                 - 's3:Get*'
               Resource: 
-                # TODO use correct bucket name
-                - "arn:aws:s3:::delete-me-bootcamp-test"
-                - "arn:aws:s3:::delete-me-bootcamp-test/*"
+                - "arn:aws:s3:::ovo-bootcamp-artifacts"
+                - "arn:aws:s3:::ovo-bootcamp-artifacts/*"
         -
           PolicyName: read-write-dynamo
           PolicyDocument:
@@ -84,7 +75,7 @@ Resources:
           Value: Bootcamp
         - Key: App
           Value: ToDo
-      VpcId: !Ref VPC
+      VpcId: vpc-042ce862
 
   LoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -100,7 +91,7 @@ Resources:
           Value: Bootcamp
         - Key: App
           Value: ToDo
-      VpcId: !Ref VPC
+      VpcId: vpc-042ce862
 
   LaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
@@ -119,8 +110,7 @@ Resources:
             yum install -y java-1.8.0-openjdk-devel
             yum remove -y java-1.7.0-openjdk
 
-            # TODO use correct bucket name
-            aws s3 cp s3://delete-me-bootcamp-test/${S3Prefix}/bootcamp-circle-cloudformation-0.1.0-SNAPSHOT.tgz .
+            aws s3 cp s3://ovo-bootcamp-artifacts/${S3Prefix}/bootcamp-circle-cloudformation-0.1.0-SNAPSHOT.tgz .
 
             tar -xvf bootcamp-circle-cloudformation-0.1.0-SNAPSHOT.tgz
             cd bootcamp-circle-cloudformation-0.1.0-SNAPSHOT
@@ -132,12 +122,13 @@ Resources:
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
+      # TODO comment out the first three props
       LoadBalancerNames:
         - !Ref LoadBalancer
       HealthCheckType: ELB
       HealthCheckGracePeriod: 180
-      VPCZoneIdentifier: !Ref Subnets
-      AvailabilityZones: !GetAZs ''
+      VPCZoneIdentifier: [ subnet-50876036 ]
+      AvailabilityZones: [ eu-west-1a ]
       LaunchConfigurationName: !Ref LaunchConfiguration
       MinSize: 1
       MaxSize: 2
@@ -157,8 +148,8 @@ Resources:
       Scheme: internet-facing
       SecurityGroups:
       - !Ref LoadBalancerSecurityGroup
-      Subnets: !Ref LoadBalancerSubnets
-      CrossZone: true
+      Subnets: [ subnet-be8166d8 ]
+      CrossZone: false
       Listeners:
       - LoadBalancerPort: 80
         InstancePort: 9000
@@ -178,8 +169,8 @@ Resources:
   DnsRecord:
     Type: AWS::Route53::RecordSet
     Properties:
-      Name: 'todo.id-uat.ovotech.org.uk.' # TODO update domain
-      HostedZoneId: 'Z1GQPB3VL1ULS6' # TODO replace with HostedZoneName: 'bootcamp.ovotech.org.uk.'
+      Name: 'todo.bootcamp.ovotech.org.uk.'
+      HostedZoneName: 'bootcamp.ovotech.org.uk.'
       Type: A
       AliasTarget:
         HostedZoneId: !GetAtt LoadBalancer.CanonicalHostedZoneNameID

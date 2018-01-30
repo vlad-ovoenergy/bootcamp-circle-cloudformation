@@ -13,7 +13,7 @@ jobs:
     working_directory: ~/bootcamp-circle-cloudformation
     steps:
       - checkout
-      - run: ./build-and-deploy-to-aws.sh delete-me-bootcamp-asg-AutoScalingGroup-869K43OHH4RR chris 
+      - run: ./build-and-deploy-to-aws.sh delete-me-chris-asg-AutoScalingGroup-15JGK1GPHQD6D chris 
 
 workflows:
   version: 2

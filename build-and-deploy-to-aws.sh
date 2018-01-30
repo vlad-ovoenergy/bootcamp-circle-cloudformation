@@ -16,8 +16,7 @@ COMMENT
 asg_name=${1?'Auto scaling group name missing'}
 s3_prefix=${2?'S3 prefix missing'}
 
-# TODO use correct bucket name
-s3_bucket=delete-me-bootcamp-test
+s3_bucket=ovo-bootcamp-artifacts
 artifact_filename=bootcamp-circle-cloudformation-0.1.0-SNAPSHOT.tgz
 s3_location="s3://${s3_bucket}/${s3_prefix}/${artifact_filename}"
 

@@ -1,3 +1,5 @@
+import com.amazonaws.auth.profile.ProfileCredentialsProvider
+import com.amazonaws.auth.{AWSCredentialsProviderChain, EC2ContainerCredentialsProviderWrapper, EnvironmentVariableCredentialsProvider, SystemPropertiesCredentialsProvider}
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.gu.scanamo._
 import controllers.TodoController
@@ -9,7 +11,16 @@ import play.api.{Application, ApplicationLoader, BuiltInComponentsFromContext}
 import router.Routes
 
 class AppComponents(context: ApplicationLoader.Context) extends BuiltInComponentsFromContext(context) {
-  val dynamoClient = AmazonDynamoDBClient.builder().build()
+  // Creds provider chain that looks in both the "training" and default profiles
+  val awsCredsProvider = new AWSCredentialsProviderChain(
+    new EnvironmentVariableCredentialsProvider(),
+    new SystemPropertiesCredentialsProvider(),
+    new ProfileCredentialsProvider("training"),
+    new ProfileCredentialsProvider(),
+    new EC2ContainerCredentialsProviderWrapper()
+  )
+
+  val dynamoClient = AmazonDynamoDBClient.builder().withCredentials(awsCredsProvider).build()
   val tableName = configuration.get[String]("dynamo.table")
   val dynamoTable: Table[TodoItem] = Table[TodoItem](tableName)
 
