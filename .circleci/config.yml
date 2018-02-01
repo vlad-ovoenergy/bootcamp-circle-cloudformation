@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  test:
+  build:
     docker:
       - image: adambene/circleci-openjdk-awscli
     working_directory: ~/bootcamp-circle-cloudformation
