@@ -1,3 +1,6 @@
 # Created by .ignore support plugin (hsz.mobi)
 /.idea/hydra.xml
 /.idea/
+/project/target/
+/target/
+/project/project/
