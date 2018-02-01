@@ -9,12 +9,12 @@ jobs:
       - run: sbt test
 
   deploy:
-      docker:
+    docker:
         - image: adambene/circleci-openjdk-awscli
-      working_directory: ~/bootcamp-circle-cloudformation
-      steps:
-        - checkout
-        - run: ./build-and-deploy-to-aws.sh vlad-asg-AutoScalingGroup-7W7X28DX5V3P vladS3Prefix
+    working_directory: ~/bootcamp-circle-cloudformation
+    steps:
+      - checkout
+      - run: ./build-and-deploy-to-aws.sh vlad-asg-AutoScalingGroup-7W7X28DX5V3P vladS3Prefix
 
 workflows:
   version: 2
@@ -22,8 +22,8 @@ workflows:
     jobs:
       - test
       - deploy:
-          filters:
-            branches:
-              only: master
+        filters:
+          branches:
+            only: master
           requires:
-            -test
+          - test
