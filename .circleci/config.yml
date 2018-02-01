@@ -14,3 +14,9 @@ jobs:
     steps:
       - checkout
       - run: ./build-and-deploy-to-aws.sh vlad-asg-AutoScalingGroup-7W7X28DX5V3P vladS3Prefix
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build
+      - deploy
